@@ -33,3 +33,8 @@
 
 Из Packagist:
 
+Перейти в каталог, в которой Вы будете клонировать проект;
+Выполнить команду: composer require egorovaoa02/tic-tac-toe;
+Перейти в каталог vendor/bin;
+Запустить Консоль и ввести "php start.php"
+
