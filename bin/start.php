@@ -2,8 +2,8 @@
 
 <?php
 
-$pathForGithub = __DIR__.'/../vendor/autoload.php';
-$pathForPackagist = __DIR__.'/../../../autoload.php';
+$pathForGithub = __DIR__ . '/../vendor/autoload.php';
+$pathForPackagist = __DIR__ . '/../../../autoload.php';
 
 if (file_exists($pathForGithub)) {
     require_once($pathForGithub);
