@@ -2,18 +2,9 @@
 
 <?php
 
-$pathForGithub = __DIR__.'/../vendor/autoload.php';
-$pathForPackagist = __DIR__.'/../../../autoload.php';
-
-if (file_exists($pathForGithub)) {
-    require_once($pathForGithub);
-} else {
-    require_once($pathForPackagist);
-}
-
-// require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Egorovaoa02\TicTacToe\Controller\Controller;
 
 $controller = new Controller();
-$controller->startGame();
+$controller->menu();

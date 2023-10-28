@@ -5,11 +5,46 @@ declare(strict_types=1);
 namespace Egorovaoa02\TicTacToe\Controller;
 
 use Egorovaoa02\TicTacToe\View\View;
+use Egorovaoa02\TicTacToe\Model\Model;
 
 use function cli\line;
 
 class Controller
 {
+    public function menu()
+    {
+        $isExist = file_exists('tic-tac-toe.db');
+
+        View::showGame($isExist);
+
+        $choiceUser = readline("Выберите действие: ");
+
+        switch ($choiceUser) {
+            case 1:
+                $this->startGame();
+                break;
+            case 2:
+                if ($isExist) {
+                    $this->showHistory();
+                    break;
+                } else {
+                    echo "Таблицы не существует";
+                    break;
+                }
+            case 3:
+                if ($isExist) {
+                    $this->showGameRepeat();
+                    break;
+                } else {
+                    echo "Таблицы не существует";
+                    break;
+                }
+            default:
+                echo "Неверный выбор";
+                break;
+        }
+    }
+
     private function validationData(string $playerData): array|bool
     {
         $inputArray = explode(' ', $playerData);
@@ -86,8 +121,20 @@ class Controller
 
         $computerMove = '';
         $playerMove = '';
+        $numberTry = 0;
 
         $moves = 0;
+
+        $playerName = readline("Введите ваше имя: ");
+
+        if (! file_exists('tic-tac-toe.db')) {
+            $model = new Model('tic-tac-toe.db');
+            $model->createTables();
+        } else {
+            $model = new Model('tic-tac-toe.db');
+        }
+        $gameId = $model->createId();
+
         try {
             if ($this->isСrosses()) {
                 $computerMove = 'X';
@@ -118,6 +165,8 @@ class Controller
                 $ceil = explode(' ', $playerData);
 
                 $board[$ceil[0] - 1][$ceil[1] - 1] = $playerMove;
+                $moves++;
+                $numberTry++;
 
                 View::showBoard($board);
 
@@ -126,9 +175,13 @@ class Controller
 
                 echo "Ход компьютера:\n";
                 View::showBoard($board);
+                $moves++;
+                $computerCeilView = $computerCeil[0] + 1 . ' ' . $computerCeil[1] + 1;
 
-                $moves += 2;
+                $model->storeTry($gameId, $numberTry, $playerData, $computerCeilView);
             }
+
+            $computerCeilView = $computerCeil[0] + 1 . ' ' . $computerCeil[1] + 1;
 
             while (true) {
                 $playerData = readline("Введите координаты ячейки (в формате x y, например 1 1): ");
@@ -142,12 +195,17 @@ class Controller
 
                 if ($this->isEmpty($board[$ceil[0] - 1][$ceil[1] - 1])) {
                     $board[$ceil[0] - 1][$ceil[1] - 1] = $playerMove;
+                    $numberTry++;
+                    $moves++;
 
                     $computerCeil = $this->generateComputerMove($board);
                     $board[$computerCeil[0]][$computerCeil[1]] = $computerMove;
+                    $moves++;
 
                     View::showBoard($board);
-                    $moves += 2;
+                    $computerCeilView = $computerCeil[0] + 1 . ' ' . $computerCeil[1] + 1;
+
+                    $model->storeTry($gameId, $numberTry, $playerData, $computerCeilView);
                 } else {
                     View::showHint($board);
                     continue;
@@ -155,11 +213,14 @@ class Controller
 
                 if ($this->isWinner($board, $playerMove)) {
                     View::showWin();
+                    $model->storeResult($playerName, $playerMove, '3x3', $playerMove);
                     break;
                 } elseif ($this->isWinner($board, $computerMove)) {
                     View::showLose();
+                    $model->storeResult($playerName, $playerMove, '3x3', $computerMove);
                     break;
-                } elseif ($moves === count($board) * count($board) - 1) {
+                } elseif ($moves === count($board) * count($board)) {
+                    $model->storeResult($playerName, $playerMove, '3x3', '-');
                     View::showDraw();
                     break;
                 }
@@ -168,5 +229,25 @@ class Controller
             View::showErrorMessage();
             die();
         }
+    }
+
+    public function showHistory(): void
+    {
+        $model = new Model('tic-tac-toe.db');
+
+        $games = $model->getGames();
+
+        View::showHistory($games);
+    }
+
+    public function showGameRepeat()
+    {
+        $gameId = readline("Введите номер сохраненной партии: ");
+
+        $model = new Model('tic-tac-toe.db');
+
+        $game = $model->getGame($gameId);
+
+        View::showGameRepeat($game);
     }
 }
